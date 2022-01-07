@@ -5,7 +5,7 @@ from .base import LoggerHook
 
 
 @HOOKS.register_module()
-class WandbLoggerHook(LoggerHook):
+class OldWandbLoggerHook(LoggerHook):
 
     def __init__(self,
                  init_kwargs=None,
@@ -54,3 +54,13 @@ class WandbLoggerHook(LoggerHook):
     @master_only
     def after_run(self, runner):
         self.wandb.join()
+
+
+@HOOKS.register_module()
+class WandbLoggerHook(OldWandbLoggerHook):
+    @master_only
+    def log(self, runner):
+        tags = self.get_loggable_tags(runner)
+        if tags:
+            tags['global_step'] = self.get_iter(runner)
+            self.wandb.log(tags, commit=self.commit)
